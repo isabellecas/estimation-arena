@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estimation Arena — Jogo de estimativas</title>
+<style>
+:root{--bg:#f7f3fc;--panel:#fff;--ink:#30263d;--muted:#766b82;--purple:#7651a6;--purple2:#eee5f8;--line:#e7ddef;--green:#2d805c;--orange:#b56b25;--red:#b34d62;--shadow:0 12px 35px #39244d12}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:linear-gradient(125deg,#4d326e,#8968b2);color:white;padding:28px 20px 24px}
+.wrap{max-width:1120px;margin:auto;padding:0 18px}
+header h1{margin:0;font-size:clamp(27px,4vw,40px);letter-spacing:-.8px}header p{margin:6px 0 0;color:#eee5f7;max-width:720px}
+.topstats{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.stat{background:#ffffff20;border:1px solid #ffffff38;padding:8px 12px;border-radius:12px;font-size:13px}
+main{padding:24px 0 50px}.layout{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start}
+.panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.sidebar{padding:16px;position:sticky;top:15px}.sidebar h3{margin:0 0 10px;font-size:16px}
+.progress{height:8px;background:#eee8f4;border-radius:9px;overflow:hidden;margin:10px 0 16px}.progress span{display:block;height:100%;background:var(--purple);width:0;transition:.25s}
+.storylist{display:grid;gap:7px}.storybtn{border:1px solid transparent;background:#faf8fc;border-radius:11px;text-align:left;padding:10px;cursor:pointer;color:var(--ink);display:flex;justify-content:space-between;gap:8px}
+.storybtn.active{background:var(--purple2);border-color:#cbb7e1}.storybtn.done:after{content:"✓";color:var(--green);font-weight:800}
+.content{display:grid;gap:16px}.card{padding:22px}.eyebrow{text-transform:uppercase;letter-spacing:1.2px;font-size:11px;color:var(--purple);font-weight:800}
+h2{font-size:24px;line-height:1.2;margin:5px 0 12px}h3{margin:18px 0 7px;font-size:16px}.muted{color:var(--muted)}.tag{display:inline-flex;padding:4px 9px;border-radius:99px;background:var(--purple2);color:#5e4081;font-size:12px;font-weight:700;margin:0 5px 5px 0}
+ul{padding-left:20px;margin:8px 0}li{margin:4px 0}.storydesc{font-size:16px}.criteria{background:#faf8fc;border:1px solid var(--line);border-radius:12px;padding:12px}
+.points{display:grid;grid-template-columns:repeat(7,minmax(50px,1fr));gap:8px;margin-top:10px}.point{border:1px solid #d9cbe6;background:white;border-radius:12px;padding:13px 5px;font-size:20px;font-weight:800;color:var(--purple);cursor:pointer}.point:hover,.point.selected{background:var(--purple);color:white;border-color:var(--purple)}
+button{font:inherit}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:11px;padding:11px 16px;font-weight:750;cursor:pointer;background:var(--purple);color:white}.btn.secondary{background:#eee8f4;color:#50386b}.btn.dark{background:#392d48}.btn:disabled{opacity:.4;cursor:not-allowed}
+.hiddenbox{display:none;margin-top:15px;background:#fff6e9;border:1px dashed #d99b52;border-radius:13px;padding:15px}.hiddenbox.show{display:block}.hiddenbox strong{color:#94591d}
+.notice{border-radius:12px;padding:12px;background:#f0eaf8;color:#55406e}.result{display:none;margin-top:14px;padding:14px;border-radius:12px;background:#eef8f2;border:1px solid #cce6d6}.result.show{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.metric{padding:14px;border-radius:13px;background:#faf8fc;border:1px solid var(--line)}.metric b{font-size:22px;display:block}
+select,input{font:inherit;border:1px solid #d9cbe6;border-radius:10px;padding:10px;background:white;color:var(--ink);width:100%}
+.sprintitem{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.sprintitem input{width:auto;margin-top:5px;accent-color:var(--purple)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:12px;text-transform:uppercase}
+footer{text-align:center;color:var(--muted);padding:22px;font-size:12px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.sidebar{position:static}.storylist{grid-template-columns:repeat(2,minmax(0,1fr))}.points{grid-template-columns:repeat(4,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="eyebrow" style="color:#eadcf8">Arena de aprendizagem • Métodos ágeis</div>
+  <h1>Estimation Arena</h1>
+  <p>Estime histórias de usuário, enfrente imprevistos e monte uma Sprint viável. Aqui, uma boa estimativa vale mais quando vem acompanhada de uma boa justificativa.</p>
+  <div class="topstats">
+    <div class="stat">🏆 Pontuação: <b id="score">0</b></div>
+    <div class="stat">📚 Histórias concluídas: <b id="completed">0/10</b></div>
+    <div class="stat">⚡ Capacidade da Sprint: <b>30 SP</b></div>
+  </div>
+</div></header>
+<main class="wrap">
+<div class="layout">
+<aside class="panel sidebar">
+  <h3>Suas histórias</h3>
+  <div class="muted" style="font-size:13px">Selecione uma carta para jogar.</div>
+  <div class="progress"><span id="progressbar"></span></div>
+  <div class="storylist" id="storylist"></div>
+  <div style="margin-top:17px" class="notice"><b>Como jogar</b><br>1. Leia a história.<br>2. Escolha os Story Points.<br>3. Revele o imprevisto.<br>4. Revise sua estimativa.<br>5. Receba sua pontuação.</div>
+</aside>
+<section class="content">
+  <div class="card" id="storycard">
+    <div class="eyebrow">Carta de história de usuário <span id="storycount"></span></div>
+    <h2 id="title">Login de usuário</h2>
+    <div id="tags"></div>
+    <p class="storydesc" id="description"></p>
+    <h3>Contexto</h3><p id="context" class="muted"></p>
+    <h3>Requisitos funcionais</h3><ul id="requirements"></ul>
+    <h3>Critérios de aceitação</h3><div class="criteria"><ul id="acceptance"></ul></div>
+    <div class="notice" style="margin-top:15px"><b>Desafio:</b> considere complexidade técnica, volume de trabalho, incerteza e riscos/dependências antes de escolher seus pontos.</div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Fase 1 • Estimativa inicial</div>
+    <h2>Quantos Story Points você atribui?</h2>
+    <p class="muted">Escolha um valor da escala. Os pontos são relativos: não representam horas ou dias.</p>
+    <div class="points" id="initialpoints"></div>
+    <div class="actions"><button class="btn" id="lockinitial" disabled>Confirmar estimativa inicial</button></div>
+    <div id="initialstatus" class="muted" style="margin-top:10px"></div>
+    <div class="hiddenbox" id="eventbox"><strong>⚠ Evento inesperado revelado!</strong><p id="eventtext"></p><b>Desafio de revisão:</b> a informação muda sua percepção de esforço? Você pode manter ou alterar sua estimativa.</div>
+    <div id="revisionarea" style="display:none;margin-top:18px">
+      <div class="eyebrow">Fase 2 • Revisão da estimativa</div>
+      <h3>Escolha sua estimativa revisada</h3>
+      <div class="points" id="revisionpoints"></div>
+      <div class="actions"><button class="btn" id="finishstory" disabled>Finalizar história</button></div>
+    </div>
+    <div class="result" id="storyresult"></div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Referência para estimar</div>
+    <h2>Escala de Story Points</h2>
+    <p class="muted">Use os quatro fatores em conjunto. A matriz orienta a conversa, mas não funciona como calculadora automática.</p>
+    <div class="grid2">
+      <div class="metric"><b>Complexidade</b><span class="muted">Quão difícil é encontrar e implementar a solução?</span></div>
+      <div class="metric"><b>Volume</b><span class="muted">Quantas etapas, regras e componentes existem?</span></div>
+      <div class="metric"><b>Incerteza</b><span class="muted">Quanto ainda não sabemos sobre requisitos e solução?</span></div>
+      <div class="metric"><b>Riscos</b><span class="muted">Há integrações, sistemas legados ou dependências?</span></div>
+    </div>
+    <table style="margin-top:14px"><thead><tr><th>SP</th><th>Classificação</th><th>Referência</th></tr></thead><tbody>
+      <tr><td><b>1</b></td><td>Muito pequeno</td><td>Alteração mínima, conhecida e previsível.</td></tr>
+      <tr><td><b>2</b></td><td>Pequeno</td><td>Poucas etapas, baixa complexidade.</td></tr>
+      <tr><td><b>3</b></td><td>Simples</td><td>Algumas etapas, solução conhecida.</td></tr>
+      <tr><td><b>5</b></td><td>Moderado</td><td>Vários componentes ou regras específicas.</td></tr>
+      <tr><td><b>8</b></td><td>Complexo</td><td>Integrações, validações ou incertezas relevantes.</td></tr>
+      <tr><td><b>13</b></td><td>Muito complexo</td><td>Múltiplas dependências e riscos importantes.</td></tr>
+      <tr><td><b>21</b></td><td>Extremamente complexo</td><td>Escopo amplo; considere dividir a história.</td></tr>
+    </tbody></table>
+    <p class="muted" style="font-size:12px">A escala é uma convenção didática do jogo. Story Points são medidas relativas, não conversões para horas.</p>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Fase 3 • Planejamento da Sprint</div>
+    <h2>Monte uma Sprint de até 30 SP</h2>
+    <p class="muted">Depois de jogar as histórias, selecione as funcionalidades que entrariam na próxima Sprint. Para esta etapa, o jogo usa os pontos de referência após a revelação dos eventos.</p>
+    <div id="sprintlist"></div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="metric"><span class="muted">Capacidade disponível</span><b>30 SP</b></div>
+      <div class="metric"><span class="muted">Selecionado</span><b id="sprinttotal">0 SP</b></div>
+    </div>
+    <div id="sprintfeedback" class="notice" style="margin-top:12px">Selecione histórias para montar seu planejamento.</div>
+    <div class="actions"><button class="btn" id="checkSprint">Avaliar planejamento</button><button class="btn secondary" id="resetSprint">Limpar seleção</button></div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Fim da partida</div>
+    <h2>Seu desempenho</h2>
+    <div class="grid2">
+      <div class="metric"><span class="muted">Pontuação total</span><b id="finalscore">0</b></div>
+      <div class="metric"><span class="muted">Histórias finalizadas</span><b id="finalcompleted">0/10</b></div>
+    </div>
+    <p id="finalmessage" class="muted">Complete as histórias e avalie sua Sprint para visualizar o resultado.</p>
+    <div class="actions"><button class="btn secondary" onclick="location.reload()">Reiniciar jogo</button></div>
+  </div>
+</section>
+</div></main>
+<footer>Estimation Arena • Material didático para aprendizagem de estimativas ágeis</footer>
+<script>
+const stories=[
+{title:"Login de usuário",level:"Baixa complexidade",initial:3,final:5,desc:"Como usuário cadastrado, quero acessar a plataforma utilizando meu e-mail e senha, para visualizar minhas informações e utilizar as funcionalidades disponíveis de acordo com minhas permissões.",context:"Uma empresa está desenvolvendo uma plataforma de gerenciamento de projetos e precisa disponibilizar um mecanismo de autenticação para seus usuários.",req:["Criar uma tela de login.","Disponibilizar campos para e-mail e senha.","Validar as credenciais informadas.","Permitir visualizar ou ocultar a senha.","Exibir mensagens de erro para credenciais inválidas.","Redirecionar o usuário ao painel após a autenticação.","Encerrar a sessão quando o usuário sair."],acc:["Aceitar somente usuários previamente cadastrados.","Impedir o acesso quando as credenciais estiverem incorretas.","Exibir mensagem clara em caso de falha.","Encerrar a sessão após o logout.","Respeitar as regras de autenticação."],event:"A empresa decidiu utilizar um serviço externo de autenticação. A equipe ainda não possui experiência com a integração e precisa adaptar o sistema para utilizar esse serviço.",challenge:"Considere o esforço de integração e os possíveis problemas de comunicação com o serviço externo."},
+{title:"Recuperação de senha",level:"Baixa complexidade",initial:2,final:3,desc:"Como usuário cadastrado, quero recuperar minha senha por meio do meu e-mail, para restabelecer o acesso à minha conta sem precisar entrar em contato com o suporte técnico.",context:"Após o lançamento da plataforma, diversos usuários relataram dificuldades para acessar suas contas porque esqueceram suas senhas.",req:["Disponibilizar a opção de recuperação na tela de login.","Solicitar o e-mail associado à conta.","Verificar o endereço informado.","Enviar um link de recuperação.","Permitir cadastrar uma nova senha.","Invalidar o link após utilização ou expiração."],acc:["Permitir solicitar recuperação informando o e-mail.","O link deve possuir prazo de validade.","Impedir reutilização de links utilizados.","Validar os requisitos mínimos da nova senha.","Confirmar a alteração ao usuário."],event:"O serviço de envio de e-mails já está implementado. Entretanto, não existe mecanismo para controlar a expiração dos links e evitar solicitações excessivas de recuperação.",challenge:"Avalie a implementação das regras de segurança e do controle de solicitações."},
+{title:"Cadastro de novos usuários",level:"Média complexidade",initial:5,final:8,desc:"Como visitante, quero criar uma conta informando meus dados pessoais, para utilizar os serviços da plataforma e acompanhar minhas atividades.",context:"A plataforma está em expansão e precisa permitir que novos usuários realizem o próprio cadastro, sem depender de um administrador.",req:["Criar formulário de cadastro.","Solicitar nome completo, e-mail, telefone e senha.","Validar campos obrigatórios.","Verificar se o e-mail já está cadastrado.","Implementar validação de senha.","Armazenar dados no banco.","Enviar confirmação por e-mail e ativar a conta por link."],acc:["Não concluir cadastro com campos obrigatórios vazios.","Identificar e-mails duplicados.","Exigir senha conforme requisitos de segurança.","Enviar e-mail de confirmação.","Ativar conta somente após confirmação.","Armazenar dados corretamente."],event:"O cliente solicita que o cadastro também permita a inclusão de documentos pessoais para validação da identidade. Essa exigência não estava prevista no planejamento inicial.",challenge:"Identifique o impacto da ampliação do escopo, considerando armazenamento, validação e segurança dos documentos."},
+{title:"Edição de perfil",level:"Baixa complexidade",initial:3,final:5,desc:"Como usuário cadastrado, quero editar minhas informações pessoais, para manter meu perfil atualizado e corrigir dados incorretos.",context:"Os usuários precisam atualizar suas informações pessoais sem depender de solicitações à equipe administrativa.",req:["Disponibilizar página de edição de perfil.","Permitir alterar nome e telefone.","Permitir atualizar foto de perfil.","Exibir informações cadastradas.","Validar dados antes de salvar.","Exibir confirmação após atualização."],acc:["Exibir os dados atuais.","Salvar alterações corretamente.","Impedir informações em formatos inválidos.","Respeitar formatos e limites de tamanho das imagens.","Atualizar as informações no perfil."],event:"A plataforma não possui serviço de armazenamento de imagens. A equipe precisará integrar uma ferramenta externa e garantir que as imagens sejam exibidas corretamente em diferentes dispositivos.",challenge:"Considere integração, tratamento dos arquivos e compatibilidade da interface."},
+{title:"Painel de relatórios gerenciais",level:"Alta complexidade",initial:8,final:13,desc:"Como administrador, quero visualizar relatórios gerenciais com indicadores e gráficos, para acompanhar o desempenho da plataforma e identificar tendências de utilização.",context:"Os administradores precisam acompanhar o desempenho da plataforma e tomar decisões com base nas informações geradas pelos usuários.",req:["Criar painel de indicadores.","Apresentar total de usuários cadastrados.","Exibir acessos por período.","Disponibilizar filtros por data.","Apresentar gráficos de evolução.","Permitir comparar períodos.","Atualizar indicadores com base nos dados registrados."],acc:["Apresentar informações atualizadas.","Aplicar corretamente os filtros.","Representar os dados corretamente nos gráficos.","Permitir selecionar diferentes períodos.","Restringir acesso a administradores autorizados.","Não comprometer significativamente o desempenho."],event:"Os dados estão distribuídos em diversas tabelas, sem estrutura preparada para consultas complexas. O cliente também solicita relatórios comparativos entre meses e anos.",challenge:"Avalie o trabalho para organizar dados, desenvolver consultas, construir gráficos e garantir desempenho."},
+{title:"Exportação de relatórios",level:"Média complexidade",initial:5,final:8,desc:"Como administrador, quero exportar relatórios em PDF e Excel, para compartilhar resultados e realizar análises complementares.",context:"Os administradores precisam compartilhar os relatórios gerados pela plataforma em reuniões e apresentações externas.",req:["Disponibilizar botão de exportação.","Permitir escolher PDF ou Excel.","Exportar os dados apresentados na tela.","Respeitar filtros aplicados.","Organizar dados em tabelas.","Inserir título, data e identificação do relatório.","Permitir download."],acc:["Gerar arquivos nos dois formatos.","Manter os mesmos dados exibidos na plataforma.","Respeitar filtros aplicados.","Apresentar formatação adequada.","Disponibilizar download após geração."],event:"Alguns relatórios poderão conter mais de 100 mil registros. A geração não poderá bloquear a utilização da plataforma durante o processamento.",challenge:"Considere processamento em segundo plano, desempenho, memória e disponibilização dos arquivos."},
+{title:"Sistema de notificações",level:"Média complexidade",initial:3,final:5,desc:"Como usuário cadastrado, quero receber notificações sobre acontecimentos importantes da plataforma, para acompanhar atualizações e não perder informações relevantes.",context:"Os usuários precisam receber informações sobre atualizações, atividades e alterações importantes relacionadas às suas contas.",req:["Criar central de notificações.","Exibir notificações recentes.","Identificar notificações lidas e não lidas.","Registrar data e horário.","Permitir marcar como lidas.","Enviar notificações por e-mail."],acc:["Permitir visualizar notificações.","Identificar notificações não lidas.","Permitir marcá-las como lidas.","Associar notificações ao usuário correto.","Enviar e-mails quando necessário.","Evitar notificações duplicadas."],event:"A empresa decide que as notificações também devem ser enviadas em tempo real, sem que o usuário precise atualizar a página. A equipe ainda não possui essa infraestrutura.",challenge:"Avalie a necessidade de implementar comunicação em tempo real e integrar o envio de e-mails."},
+{title:"Pesquisa e filtros",level:"Média complexidade",initial:5,final:8,desc:"Como usuário, quero pesquisar e filtrar informações disponíveis na plataforma, para encontrar rapidamente os registros que correspondem às minhas necessidades.",context:"Com o crescimento da plataforma, os usuários passaram a encontrar dificuldades para localizar informações específicas.",req:["Criar campo de pesquisa.","Permitir pesquisas por palavras-chave.","Disponibilizar filtros por categoria.","Permitir combinar filtros.","Organizar resultados por relevância ou data.","Disponibilizar paginação.","Exibir mensagem quando não houver resultados."],acc:["Apresentar resultados relacionados ao termo pesquisado.","Permitir filtros individuais e combinados.","Respeitar permissões de acesso.","Organizar resultados.","Informar quando não houver correspondências.","Apresentar desempenho adequado."],event:"A plataforma possui mais de um milhão de registros e as pesquisas atuais apresentam lentidão. O cliente solicita resultados em poucos segundos, mesmo com vários filtros simultâneos.",challenge:"Considere otimização das consultas, indexação e tratamento de grandes volumes de informações."},
+{title:"Controle de permissões",level:"Alta complexidade",initial:8,final:13,desc:"Como administrador, quero definir diferentes níveis de acesso para os usuários, para controlar quais funcionalidades e informações cada perfil poderá visualizar ou modificar.",context:"A empresa percebeu que todos os usuários possuem praticamente o mesmo nível de acesso, o que representa um risco para a segurança das informações.",req:["Criar perfis de acesso.","Disponibilizar perfis de administrador, gerente e usuário comum.","Definir permissões específicas.","Permitir cadastrar perfis.","Permitir alterar permissões.","Restringir funcionalidades conforme o perfil.","Registrar alterações nas permissões."],acc:["Cada perfil deve possuir permissões específicas.","Impedir acesso sem autorização.","Permitir ao administrador modificar permissões.","Aplicar alterações corretamente.","Manter a segurança dos dados.","Validar permissões na interface e no servidor."],event:"A plataforma já possui centenas de usuários ativos e não apresenta estrutura de permissões. A implementação deverá preservar os acessos existentes, migrar os usuários e evitar exposição de informações durante a transição.",challenge:"Considere migração de dados, arquitetura de autorização, testes de segurança e compatibilidade."},
+{title:"Histórico e auditoria",level:"Alta complexidade",initial:8,final:13,desc:"Como administrador, quero consultar um histórico detalhado das atividades realizadas pelos usuários, para identificar alterações, investigar problemas e acompanhar ações importantes.",context:"A empresa precisa aumentar a segurança e a rastreabilidade das operações realizadas na plataforma, principalmente em ações administrativas.",req:["Registrar operações importantes.","Identificar o usuário responsável.","Registrar data e horário.","Identificar tipo de operação.","Registrar alterações relevantes.","Permitir pesquisa por usuário.","Filtrar por período e tipo.","Restringir acesso e proteger registros."],acc:["Registrar operações definidas como relevantes.","Identificar o responsável pela ação.","Apresentar data, horário e descrição.","Permitir pesquisa pelo administrador.","Restringir acesso a usuários não autorizados.","Proteger registros contra alterações indevidas.","Suportar crescimento do volume de informações."],event:"O cliente exige que os registros sejam armazenados em ambiente separado do banco principal, com mecanismos de proteção contra alterações e capacidade para atender requisitos de auditoria.",challenge:"Avalie arquitetura de armazenamento, segurança, rastreabilidade e integração com diferentes módulos."}
+];
+let current=0, initialChoice=null, revisionChoice=null, score=0, completed=new Set(), sprintChecked=false;
+const $=id=>document.getElementById(id);
+function renderList(){ $("storylist").innerHTML=stories.map((s,i)=>`<button class="storybtn ${i===current?'active':''} ${completed.has(i)?'done':''}" onclick="selectStory(${i})"><span>${String(i+1).padStart(2,'0')} · ${s.title}</span></button>`).join("");$("completed").textContent=`${completed.size}/10`;$("progressbar").style.width=(completed.size*10)+"%";$("score").textContent=score;$("finalscore").textContent=score;$("finalcompleted").textContent=completed.size+"/10";}
+function selectStory(i){current=i;initialChoice=null;revisionChoice=null;renderStory();renderList();}
+function renderStory(){let s=stories[current];$("storycount").textContent=`— ${current+1}/10`;$("title").textContent=s.title;$("description").textContent=s.desc;$("context").textContent=s.context;$("tags").innerHTML=`<span class="tag">${s.level}</span><span class="tag">Estimativa de referência: ${s.final} SP</span>`;$("requirements").innerHTML=s.req.map(x=>`<li>${x}</li>`).join("");$("acceptance").innerHTML=s.acc.map(x=>`<li>${x}</li>`).join("");$("initialpoints").innerHTML=[1,2,3,5,8,13,21].map(p=>`<button class="point" onclick="chooseInitial(${p})">${p}</button>`).join("");$("revisionpoints").innerHTML=[1,2,3,5,8,13,21].map(p=>`<button class="point" onclick="chooseRevision(${p})">${p}</button>`).join("");$("lockinitial").disabled=true;$("initialstatus").textContent="Nenhuma estimativa selecionada.";$("eventbox").classList.remove("show");$("revisionarea").style.display="none";$("storyresult").classList.remove("show");$("storyresult").innerHTML="";$("finishstory").disabled=true;}
+function chooseInitial(p){initialChoice=p;document.querySelectorAll("#initialpoints .point").forEach(b=>b.classList.toggle("selected",+b.textContent===p));$("lockinitial").disabled=false;$("initialstatus").textContent=`Estimativa escolhida: ${p} SP`;}
+function chooseRevision(p){revisionChoice=p;document.querySelectorAll("#revisionpoints .point").forEach(b=>b.classList.toggle("selected",+b.textContent===p));$("finishstory").disabled=false;}
+$("lockinitial").onclick=()=>{if(initialChoice===null)return;let s=stories[current];$("eventtext").textContent=s.event+" "+s.challenge;$("eventbox").classList.add("show");$("revisionarea").style.display="block";$("initialstatus").textContent=`Estimativa inicial registrada: ${initialChoice} SP. Agora considere o evento revelado.`;};
+$("finishstory").onclick=()=>{if(revisionChoice===null)return;let s=stories[current];let distance=Math.abs(revisionChoice-s.final);let pts=distance===0?10:distance===1?7:distance===2?4:distance<=5?2:0;let adaptation=revisionChoice!==initialChoice?2:1;let total=pts+adaptation;score+=total;completed.add(current);$("storyresult").innerHTML=`<b>Resultado da rodada: ${total} pontos</b><br>Sua estimativa inicial: ${initialChoice} SP.<br>Sua estimativa revisada: ${revisionChoice} SP.<br>Referência didática após o evento: ${s.final} SP.<br><br><b>Precisão:</b> ${pts}/10 pontos. <b>Revisão:</b> ${adaptation}/2 pontos.<br>${distance===0?"Estimativa alinhada à referência!":distance===1?"Você ficou muito próximo da referência.": "Compare sua justificativa com os fatores de complexidade, volume, incerteza e risco."}`;$("storyresult").classList.add("show");renderList();renderSprint();$("finalmessage").textContent=completed.size===10?"Você concluiu todas as histórias! Avalie também seu planejamento da Sprint.":"Continue jogando para completar as dez histórias.";};
+function renderSprint(){let chosen=[...document.querySelectorAll(".sprintcheck:checked")].map(x=>+x.value);let total=chosen.reduce((a,i)=>a+stories[i].final,0);$("sprinttotal").textContent=total+" SP";}
+function renderSprintList(){$("sprintlist").innerHTML=stories.map((s,i)=>`<label class="sprintitem"><input class="sprintcheck" type="checkbox" value="${i}" onchange="renderSprint()"><span><b>${s.title}</b><br><small class="muted">Referência: ${s.final} SP</small></span></label>`).join("");}
+$("checkSprint").onclick=()=>{let chosen=[...document.querySelectorAll(".sprintcheck:checked")].map(x=>+x.value);let total=chosen.reduce((a,i)=>a+stories[i].final,0);let f=$("sprintfeedback");if(chosen.length===0){f.textContent="Selecione ao menos uma história antes de avaliar.";return;}if(total<=30){f.innerHTML=`<b>Planejamento dentro da capacidade!</b><br>Você selecionou ${total} de 30 SP e deixou ${30-total} SP de margem. Reflita se a seleção considera prioridades e riscos, não apenas o limite numérico.`;score+=5;}else{f.innerHTML=`<b>Capacidade excedida.</b><br>Você selecionou ${total} SP para uma capacidade de 30 SP. Revise o escopo e priorize as histórias mais importantes.`;}$("score").textContent=score;$("finalscore").textContent=score;};
+$("resetSprint").onclick=()=>{document.querySelectorAll(".sprintcheck").forEach(x=>x.checked=false);renderSprint();$("sprintfeedback").textContent="Selecione histórias para montar seu planejamento.";};
+renderList();renderStory();renderSprintList();
+</script>
+</body></html>
